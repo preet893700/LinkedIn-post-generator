@@ -6,6 +6,9 @@ import {
   X, Copy, Send, Clock, Star, Check, Monitor, Smartphone
 } from 'lucide-react';
 
+import AppHeader from './components/AppHeader';
+
+
 // ===========================
 // API INTEGRATION
 // ===========================
@@ -135,8 +138,8 @@ const TEMPLATES = [
     key: 'story',
     name: 'Story',
     category: 'Stories',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `Flashback to {Year} when I {Experience}.
 ↳ I learned:
@@ -148,8 +151,8 @@ Sometimes, looking back is the best way to move forward.`
     key: 'tips',
     name: 'Tips',
     category: 'Tips',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `Everyone's chasing success... but real growth? It's all about {Core Message}. 💥
 
@@ -166,8 +169,8 @@ PS: Curious... what does {Topic} mean to YOU? 🤔`
     key: 'learnings',
     name: 'Learnings',
     category: 'Learnings',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `After {X} years in {field}, here's what I've learned:
 
@@ -181,8 +184,8 @@ This experience has taught me {key takeaway}.`
     key: 'guide',
     name: 'Guide/How-To',
     category: 'Guides/How-To',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `After spending {Time Period} {Researching/Working on} {Topic}, I've compiled an all-encompassing guide that covers everything you need to know:
 
@@ -215,8 +218,8 @@ Have questions or want to add your own tips? Drop them below! 🚀`
     key: 'unpopular_opinion',
     name: 'Unpopular Opinion',
     category: 'Unpopular Opinion',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `Unpopular opinion: {Your controversial opinion}.
 
@@ -229,8 +232,8 @@ Let's debate.`
     key: 'case_study',
     name: 'Case Study',
     category: 'Case Studies',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `Case Study: Transforming {Problem} into {Solution} 🔄
 
@@ -244,8 +247,8 @@ Insight? {Key Insight}.`
     key: 'celebration',
     name: 'Celebration',
     category: 'Celebration',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `🎉 Milestone Alert 🎉
 
@@ -261,8 +264,8 @@ Beyond excited for what's next! 🚀`
     key: 'motivation',
     name: 'Motivation',
     category: 'Motivation',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `{Opening hook about challenge}
 
@@ -275,8 +278,8 @@ Every setback was just a setup for a comeback. 💪`
     key: 'list',
     name: 'List',
     category: 'Lists',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `{Number} things about {Topic}:
 
@@ -292,8 +295,8 @@ Which one resonates with you most?`
     key: 'failure',
     name: 'Failure Story',
     category: 'Failures',
-    author_name: 'Fernando Pessagno',
-    author_title: 'Founder at aiCarousels, the first AI Carousel Generator ✨',
+    author_name: 'Sandeep Sharma',
+    author_title: 'Founder at Hekaos, the first AI Carousel Generator ✨',
     timestamp: '12h',
     post_body: `Oops, I did it again... 🙈
 
@@ -334,7 +337,7 @@ const TemplateCard = ({ template, isSelected, isFavourite, onSelect, onToggleFav
       <div className="p-4">
         <div className="flex items-start gap-3 mb-3">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-            FP
+            SS
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-gray-900 text-sm">{template.author_name}</div>
@@ -634,6 +637,7 @@ const App = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
+      <AppHeader navigate={(path) => window.location.href = path} />
       {/* TOP TOOLBAR */}
       <div className="bg-purple-50 border-b border-purple-100 px-4 py-2 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-1">
@@ -846,11 +850,11 @@ Struggling to hit your [goal]? Give this approach a try."
             <div className="p-4">
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-                  FP
+                  SS
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-900">Fernando</div>
-                  <div className="text-sm text-gray-600">Founder at aiCarousels</div>
+                  <div className="font-semibold text-gray-900">Sandeep Sharma</div>
+                  <div className="text-sm text-gray-600">Founder at Hekaos</div>
                   <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">12h • 🌐</div>
                 </div>
               </div>
