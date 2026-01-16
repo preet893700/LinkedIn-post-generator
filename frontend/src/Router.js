@@ -20,12 +20,8 @@ const Router = () => {
     window.scrollTo(0, 0);
   };
 
-  // Route to auth page
-  if (currentRoute === '/auth') {
-    return <AuthPage navigate={navigate} />;
-  }
-
-  // Route to profile page (protected)
+  // ✅ CHECK MORE SPECIFIC ROUTES FIRST!
+  // Route to profile page (protected) - THIS MUST COME BEFORE /app
   if (currentRoute === '/app/profile') {
     return (
       <ProtectedRoute navigate={navigate}>
@@ -41,6 +37,11 @@ const Router = () => {
         <AppPage />
       </ProtectedRoute>
     );
+  }
+
+  // Route to auth page
+  if (currentRoute === '/auth') {
+    return <AuthPage navigate={navigate} />;
   }
 
   // Default to product page
