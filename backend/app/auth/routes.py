@@ -1,7 +1,7 @@
 """
 Enhanced authentication routes with session management
 """
-from fastapi import APIRouter, HTTPException, Depends, Response, Cookie
+from fastapi import APIRouter, HTTPException, Depends, Response, Cookie, Header
 from typing import Optional
 from datetime import datetime, timedelta
 from app.auth.schemas import (
@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-async def get_current_user(authorization: Optional[str] = None):
+async def get_current_user(authorization: Optional[str] = Header(None)):
     """Dependency to get current user from access token"""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -66,7 +66,7 @@ async def signup(request: SignupRequest, response: Response):
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=True,  # Set to True in production with HTTPS
+            secure=False,  # Set to True in production with HTTPS
             samesite="lax",
             max_age=7 * 24 * 60 * 60  # 7 days
         )
@@ -111,7 +111,7 @@ async def login(request: LoginRequest, response: Response):
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=True,
+            secure=False,  # Set to True in production with HTTPS
             samesite="lax",
             max_age=7 * 24 * 60 * 60
         )
@@ -178,7 +178,7 @@ async def refresh_token(response: Response, refresh_token: Optional[str] = Cooki
             key="refresh_token",
             value=new_refresh_token,
             httponly=True,
-            secure=True,
+            secure=False,  # Set to True in production with HTTPS
             samesite="lax",
             max_age=7 * 24 * 60 * 60
         )

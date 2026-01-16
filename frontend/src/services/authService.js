@@ -1,72 +1,122 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
-
-const authAPI = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  withCredentials: true // Important for cookies
-});
+const API_URL = 'http://localhost:8000';
 
 export const authService = {
-  signup: async (name, email, password, confirmPassword) => {
-    const response = await authAPI.post('/auth/signup', {
-      name,
-      email,
-      password,
-      confirm_password: confirmPassword
-    });
-    return response.data;
-  },
-
-  login: async (email, password) => {
-    const response = await authAPI.post('/auth/login', {
-      email,
-      password
-    });
-    return response.data;
-  },
-
-  refreshToken: async () => {
-    const response = await authAPI.post('/auth/refresh');
-    return response.data;
-  },
-
-  logout: async (token) => {
-    const response = await authAPI.post('/auth/logout', {}, {
+  // Signup
+  async signup(name, email, password, confirmPassword) {
+    const response = await fetch(`${API_URL}/auth/signup`, {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Important for cookies
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        confirm_password: confirmPassword
+      })
     });
-    return response.data;
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Signup failed');
+    }
+
+    return await response.json();
   },
 
-  getCurrentUser: async (token) => {
-    const response = await authAPI.get('/auth/me', {
+  // Login
+  async login(email, password) {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Important for cookies
+      body: JSON.stringify({ email, password })
     });
-    return response.data;
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Login failed');
+    }
+
+    return await response.json();
   },
 
-  getUserProfile: async (token) => {
-    const response = await authAPI.get('/user/profile', {
+  // Get user profile - THIS IS THE FIX
+  async getUserProfile(token) {
+    const response = await fetch(`${API_URL}/auth/me`, {
+      method: 'GET',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        'Authorization': `Bearer ${token}`, // ✅ CORRECT FORMAT
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
     });
-    return response.data;
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to fetch profile');
+    }
+
+    return await response.json();
   },
 
-  updateUserProfile: async (token, profileData) => {
-    const response = await authAPI.put('/user/profile', profileData, {
+  // Update user profile
+  async updateUserProfile(token, data) {
+    const response = await fetch(`${API_URL}/user/profile`, {
+      method: 'PUT',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        'Authorization': `Bearer ${token}`, // ✅ CORRECT FORMAT
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(data)
     });
-    return response.data;
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to update profile');
+    }
+
+    return await response.json();
+  },
+
+  // Refresh token
+  async refreshToken() {
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include' // Sends the refresh_token cookie
+    });
+
+    if (!response.ok) {
+      throw new Error('Token refresh failed');
+    }
+
+    return await response.json();
+  },
+
+  // Logout
+  async logout(token) {
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Logout failed');
+    }
+
+    return await response.json();
   }
 };

@@ -571,7 +571,60 @@ const App = () => {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
 
-  const plainText = store.editorContent.replace(/<[^>]*>/g, '');
+  // Convert HTML to plain text while preserving formatting
+  const htmlToPlainText = (html) => {
+    if (!html) return '';
+    
+    // Create a temporary div to parse HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    // Helper to process nodes and preserve formatting
+    const processNode = (node) => {
+      if (node.nodeType === 3) { // Text node
+        return node.textContent;
+      }
+      
+      let text = '';
+      const tagName = node.tagName?.toLowerCase();
+      
+      // Handle different HTML elements
+      if (tagName === 'br') {
+        return '\n';
+      } else if (tagName === 'p' || tagName === 'div') {
+        for (let child of node.childNodes) {
+          text += processNode(child);
+        }
+        return text + '\n';
+      } else if (tagName === 'ul' || tagName === 'ol') {
+        for (let child of node.childNodes) {
+          text += processNode(child);
+        }
+        return text;
+      } else if (tagName === 'li') {
+        let itemText = '';
+        for (let child of node.childNodes) {
+          itemText += processNode(child);
+        }
+        return '• ' + itemText + '\n';
+      } else {
+        for (let child of node.childNodes) {
+          text += processNode(child);
+        }
+        return text;
+      }
+    };
+    
+    let result = '';
+    for (let child of temp.childNodes) {
+      result += processNode(child);
+    }
+    
+    // Clean up extra newlines but preserve intentional ones
+    return result.replace(/\n{3,}/g, '\n\n').trim();
+  };
+
+  const plainText = htmlToPlainText(store.editorContent);
   const charCount = plainText.length;
   const wordCount = plainText.trim().split(/\s+/).filter(w => w).length;
   const sentenceCount = (plainText.match(/[.!?]+/g) || []).length;
@@ -638,6 +691,7 @@ const App = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <AppHeader navigate={(path) => window.location.href = path} />
+      
       {/* TOP TOOLBAR */}
       <div className="bg-purple-50 border-b border-purple-100 px-4 py-2 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-1">
@@ -742,10 +796,10 @@ const App = () => {
         </div>
       </div>
 
-      {/* MAIN CONTENT - TWO PANE LAYOUT */}
+      {/* MAIN CONTENT - 50:50 TWO PANE LAYOUT */}
       <div className="flex-1 flex overflow-hidden">
-        {/* LEFT PANEL - EDITOR */}
-        <div className="flex-1 flex flex-col p-4 overflow-y-auto">
+        {/* LEFT PANEL - EDITOR (50%) */}
+        <div className="w-1/2 flex flex-col p-4 overflow-y-auto border-r border-gray-200">
           <div className="bg-white rounded-lg border border-gray-300 shadow-sm flex-1 flex flex-col">
             {/* Editor */}
             <div
@@ -755,9 +809,9 @@ const App = () => {
               className="flex-1 p-6 overflow-y-auto focus:outline-none"
               dangerouslySetInnerHTML={{ __html: store.editorContent }}
               style={{ minHeight: '300px' }}
-              data-placeholder="Write Your Post
+              data-placeholder="Write your post…
 
-Struggling to hit your [goal]? Give this approach a try."
+Struggling to hit your goal? Give this approach a try."
             />
 
             {/* Live Stats Bar */}
@@ -806,11 +860,7 @@ Struggling to hit your [goal]? Give this approach a try."
                 disabled={!store.aiInstruction.trim() || !store.editorContent || store.isLoading}
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-1"
               >
-                {store.isLoading ? 'Processing...' : (
-                  <>
-                    Edit Post
-                  </>
-                )}
+                {store.isLoading ? 'Processing...' : 'Edit Post'}
               </button>
             </div>
             {error && (
@@ -821,10 +871,10 @@ Struggling to hit your [goal]? Give this approach a try."
           </div>
         </div>
 
-        {/* RIGHT PANEL - PREVIEW */}
-        <div className="w-[480px] flex-shrink-0 p-4 overflow-y-auto flex flex-col" style={{ background: 'repeating-linear-gradient(45deg, #f9fafb, #f9fafb 10px, #f3f4f6 10px, #f3f4f6 20px)' }}>
-          {/* Preview Mode Toggle */}
-          <div className="mb-4 flex items-center justify-between">
+        {/* RIGHT PANEL - PREVIEW (50%) */}
+        <div className="w-1/2 flex-shrink-0 flex flex-col" style={{ background: 'repeating-linear-gradient(45deg, #f9fafb, #f9fafb 10px, #f3f4f6 10px, #f3f4f6 20px)' }}>
+          {/* Preview Mode Toggle - FIXED */}
+          <div className="p-4 pb-2 flex items-center justify-between flex-shrink-0">
             <h3 className="text-sm font-semibold text-gray-700">Post Preview</h3>
             <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-300 p-1">
               <button
@@ -844,31 +894,44 @@ Struggling to hit your [goal]? Give this approach a try."
             </div>
           </div>
 
-          {/* Preview Card */}
-          <div className={`bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden ${store.previewMode === 'mobile' ? 'max-w-sm mx-auto' : 'max-w-[420px] mx-auto'}`}>
-            {/* LinkedIn Post Card */}
-            <div className="p-4">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+          {/* Scrollable Preview Container */}
+          <div className="flex-1 overflow-y-auto px-4 pb-4">
+            {/* Preview Card - LinkedIn Style */}
+            <div className={`bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden mx-auto ${store.previewMode === 'mobile' ? 'w-full max-w-[360px]' : 'w-full max-w-[555px]'}`}>
+              {/* LinkedIn Post Card */}
+              <div className={`${store.previewMode === 'mobile' ? 'p-3' : 'p-4'}`}>
+              {/* Header with Avatar */}
+              <div className={`flex items-start mb-3 ${store.previewMode === 'mobile' ? 'gap-2 mb-2' : 'gap-3'}`}>
+                <div className={`bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0 ${store.previewMode === 'mobile' ? 'w-10 h-10 text-sm' : 'w-12 h-12'}`}>
                   SS
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-900">Sandeep Sharma</div>
-                  <div className="text-sm text-gray-600">Founder at Hekaos</div>
+                  <div className={`font-semibold text-gray-900 ${store.previewMode === 'mobile' ? 'text-sm' : 'text-base'}`}>Sandeep Sharma</div>
+                  <div className={`text-gray-600 line-clamp-1 ${store.previewMode === 'mobile' ? 'text-xs' : 'text-sm'}`}>Founder at Hekaos</div>
                   <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">12h • 🌐</div>
                 </div>
               </div>
 
-              <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                {plainText || <span className="text-gray-400 italic">Your post will appear here...</span>}
-              </div>
+              {/* Post Content */}
+              {plainText ? (
+                <div className={`text-gray-900 leading-relaxed whitespace-pre-wrap ${store.previewMode === 'mobile' ? 'text-sm' : 'text-[15px]'}`} style={{ wordBreak: 'break-word', lineHeight: '1.5' }}>
+                  {plainText}
+                </div>
+              ) : (
+                <div className={`text-gray-400 italic ${store.previewMode === 'mobile' ? 'text-sm' : 'text-[15px]'}`}>
+                  Your LinkedIn post preview will appear here.
+                  <br />
+                  Start writing or generate with AI.
+                </div>
+              )}
 
+              {/* Engagement Stats */}
               {plainText && (
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
                     👍 64
                   </div>
-                  <div className="text-xs text-gray-500">27 comments • 4 reposts</div>
+                  <span>27 comments • 4 reposts</span>
                 </div>
               )}
             </div>
@@ -878,7 +941,7 @@ Struggling to hit your [goal]? Give this approach a try."
               <div className="border-t border-gray-200 px-4 py-2">
                 <div className="grid grid-cols-4 gap-1">
                   {['Like', 'Comment', 'Share', 'Send'].map(action => (
-                    <button key={action} className="py-2 text-sm text-gray-600 hover:bg-gray-50 rounded font-medium flex items-center justify-center gap-1">
+                    <button key={action} className={`py-2 text-gray-600 hover:bg-gray-50 rounded font-medium flex items-center justify-center gap-1 ${store.previewMode === 'mobile' ? 'text-xs' : 'text-sm'}`}>
                       {action}
                     </button>
                   ))}
@@ -887,6 +950,7 @@ Struggling to hit your [goal]? Give this approach a try."
             )}
           </div>
         </div>
+      </div>
       </div>
 
       {/* BOTTOM ACTION BAR */}
@@ -928,12 +992,31 @@ Struggling to hit your [goal]? Give this approach a try."
         store={store}
       />
 
+      {/* Styles for Editor & Preview Formatting */}
       <style>{`
         [contenteditable]:empty:before {
           content: attr(data-placeholder);
           color: #9ca3af;
           pointer-events: none;
           white-space: pre-wrap;
+        }
+        [contenteditable] {
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        }
+        [contenteditable] p {
+          margin: 0 0 1em 0;
+        }
+        [contenteditable] p:last-child {
+          margin-bottom: 0;
+        }
+        [contenteditable] ul,
+        [contenteditable] ol {
+          margin: 0.5em 0;
+          padding-left: 1.5em;
+        }
+        [contenteditable] li {
+          margin: 0.25em 0;
         }
       `}</style>
     </div>
